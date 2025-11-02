@@ -1,18 +1,9 @@
-# Base Dockerfile for Big Data Services
-# This image provides common dependencies and configurations for all Java-based big data services
-# Services: Hadoop, Spark, Kafka, Pinot, Superset (and others)
+# Base Dockerfile
 
 FROM ubuntu:focal
 
 # Use bash shell for all RUN commands with pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# Build arguments with defaults
-ARG TZ=UTC
-ARG LANG=en_US.UTF-8
-ARG LANGUAGE=en_US:en
-ARG LC_ALL=en_US.UTF-8
-ARG PYTHONIOENCODING=utf-8
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -34,7 +25,6 @@ RUN echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/10disableextras &&
     fi
 
 # Install common system packages
-# These are used across multiple services: hadoop, spark, kafka, pinot, superset
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # Core utilities
