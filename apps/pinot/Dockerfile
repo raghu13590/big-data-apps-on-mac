@@ -1,17 +1,6 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.
+FROM bigdata-base:latest
 
-FROM ubuntu:focal AS builder
-
-# Use bash shell for all RUN commands with pipefail option
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# Environment variables
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=UTC
-ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-ENV PYTHONIOENCODING=utf-8
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
-ENV PATH=$JAVA_HOME/bin:$PATH
+# Additional environment variables specific to Pinot
 ENV PINOT_HOME=/opt/pinot
 ENV PATH=$PATH:${PINOT_HOME}/bin
 ENV JVM_OPTS="-Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication"
@@ -20,23 +9,18 @@ ENV JVM_OPTS="-Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseString
 ARG PINOT_VERSION
 ENV PINOT_VERSION=${PINOT_VERSION}
 
-# Disable suggests/recommends to reduce image size
-RUN echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/10disableextras && \
-    echo 'APT::Install-Suggests "0";' >> /etc/apt/apt.conf.d/10disableextras && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    apt-get update && \
+# Install additional tools needed for Pinot
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        wget curl gnupg software-properties-common lsb-release \
-        openjdk-11-jdk ca-certificates git maven \
-        build-essential netcat net-tools less nano vim \
-        jq unzip procps dnsutils iputils-ping \
-        locales && \
+        git \
+        maven \
+        build-essential \
+        jq \
+        unzip \
+        dnsutils \
+        iputils-ping && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Set locale
-RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
-    locale-gen en_US.UTF-8
 
 # Download and install Apache Pinot
 RUN mkdir -p ${PINOT_HOME} && \
@@ -66,9 +50,6 @@ RUN mkdir -p /var/pinot/controller/data \
 # Create non-root user for running services
 RUN useradd -ms /bin/bash pinot && \
     chown -R pinot:pinot /var/pinot ${PINOT_HOME}
-
-# Make scripts executable
-RUN chmod +x /opt/pinot/scripts/*.sh 2>/dev/null || true
 
 # Copy entrypoint script
 COPY --chown=pinot:pinot entrypoint.sh /entrypoint.sh
