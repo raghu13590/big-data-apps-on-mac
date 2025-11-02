@@ -6,53 +6,45 @@ services:
       POSTGRES_USER: superset
       POSTGRES_PASSWORD: superset
       POSTGRES_DB: superset
+    ports:
+      - "5432:5432"
     volumes:
-      - ../../app-data/superset/volumes/superset_db_data:/var/lib/postgresql/data
+      - superset_db_data:/var/lib/postgresql/data
     networks:
       - big-data-network
     healthcheck:
+      interval: 30s
+      timeout: 10s
+      retries: 5
       test: ["CMD-SHELL", "pg_isready -U superset"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  superset_cache:
-    image: redis:latest
-    container_name: superset_cache
-    networks:
-      - big-data-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
   superset:
-    image: apache/superset:latest
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: Dockerfile
     container_name: superset
     environment:
       SUPERSET_ENV: development
       SUPERSET_DATABASE_URI: postgresql://superset:superset@superset_db:5432/superset
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: superset
+      POSTGRES_DB: superset
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
     ports:
       - "9088:9088"
     volumes:
       - ../../app-data/superset/volumes/superset_home:/app/superset_home
-      - ../../configs/superset/superset_config.py:/app/pythonpath/superset_config.py
-    depends_on:
-      - superset_db
-      - superset_cache
+      - ${CONFIGS_DIR}/superset_config.py:/app/pythonpath/superset_config.py
     networks:
       - big-data-network
+    depends_on:
+      - superset_db
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9088/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-    command: >
-      /bin/sh -c "
-      pip install pinotdb &&
-      /usr/bin/run-server.sh
-      "
+    command: ["/bin/bash"]
 
 volumes:
   superset_db_data:
