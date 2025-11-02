@@ -1,3 +1,5 @@
+
+
 services:
   superset_db:
     image: postgres:12
@@ -16,12 +18,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      test: ["CMD-SHELL", "pg_isready -U superset"]
+      test: [ "CMD-SHELL", "pg_isready -U superset" ]
 
   superset:
     build:
       context: ${BUILD_CONTEXT}
-      dockerfile: Dockerfile
     container_name: superset
     environment:
       SUPERSET_ENV: development
@@ -30,26 +31,25 @@ services:
       POSTGRES_PASSWORD: superset
       POSTGRES_DB: superset
       SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+      SUPERSET_LOAD_EXAMPLES: yes
     ports:
       - "9088:9088"
     volumes:
-      - ../../app-data/superset/volumes/superset_home:/app/superset_home
+      - ${APP_DATA_DIR}/volumes/superset_home:/app/superset_home
       - ${CONFIGS_DIR}/superset_config.py:/app/pythonpath/superset_config.py
     networks:
       - big-data-network
     depends_on:
       - superset_db
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9088/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
+      test: [ "CMD-SHELL", "curl -f http://localhost:9088/health || exit 1" ]
     command: ["/bin/bash"]
-
-volumes:
-  superset_db_data:
-  superset_home:
-
 networks:
   big-data-network:
     external: true
+volumes:
+  superset_db_data:
+  superset_home:

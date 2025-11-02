@@ -22,8 +22,11 @@ gosu superset superset fab create-admin \
     --password admin || true
 
 gosu superset superset init
-gosu superset which superset
-gosu superset superset --version
+
+# Load examples if requested
+if [ "$SUPERSET_LOAD_EXAMPLES" = "yes" ]; then
+  gosu superset superset load_examples
+fi
 
 # Start Superset as superset user
 exec gosu superset superset run -p 9088 -h 0.0.0.0
