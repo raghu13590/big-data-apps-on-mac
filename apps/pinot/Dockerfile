@@ -1,4 +1,4 @@
-FROM bigdata-base:latest
+FROM big-data-base:latest
 
 # Additional environment variables specific to Pinot
 ENV PINOT_HOME=/opt/pinot
