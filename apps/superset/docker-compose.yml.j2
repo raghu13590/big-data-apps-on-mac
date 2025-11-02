@@ -35,7 +35,8 @@
     networks:
       - {{ BIG_DATA_NETWORK }}
     depends_on:
-      - superset_db
+      superset_db:
+        condition: service_healthy
     {{ healthcheck("curl -f http://localhost:9088/health || exit 1") | indent(4) }}
     command: ["/bin/bash"]
 {% endblock %}

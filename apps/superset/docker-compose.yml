@@ -40,7 +40,8 @@ services:
     networks:
       - big-data-network
     depends_on:
-      - superset_db
+      superset_db:
+        condition: service_healthy
     healthcheck:
       interval: 30s
       timeout: 10s
