@@ -11,7 +11,9 @@ execute_in_container() {
 check_yarn_running() {
     local output
     output=$(execute_in_container flink-jobmanager "curl -sf http://resourcemanager:8088/ws/v1/cluster/info")
-    if echo "$output" | grep -q "ResourceManager"; then
+    echo "Yarn check output: $output"
+    if echo "$output" | grep -qi "resourcemanager"; then
+        echo "Yarn ResourceManager is running."
         return 0
     else
         echo "Yarn ResourceManager is not running."

@@ -60,7 +60,7 @@ RUN echo "${LANG} UTF-8" > /etc/locale.gen && \
 
 # Set Java home (for arm64/aarch64 architecture)
 # Note: Adjust path for amd64 if needed: /usr/lib/jvm/java-11-openjdk-amd64
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
+ENV JAVA_HOME=${JAVA_HOME}
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 # Create a common directory structure

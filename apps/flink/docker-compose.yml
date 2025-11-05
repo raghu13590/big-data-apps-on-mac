@@ -5,7 +5,7 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       args:
-        JAVA_HOME: /opt/java/openjdk
+        JAVA_HOME: /usr/lib/jvm/java-11-openjdk-arm64
         JAVA_VERSION: 11
         FLINK_VERSION: 1.17.0
         FLINK_HOME: /opt/flink
@@ -19,7 +19,7 @@ services:
       FLINK_PROPERTIES: jobmanager.rpc.address:jobmanager
       HADOOP_HOME: /opt/hadoop-3.3.6
       HADOOP_CONF_DIR: ${HADOOP_CONF_DIR}
-      JAVA_HOME: /opt/java/openjdk
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-arm64
     container_name: flink-jobmanager
     ports:
       - "${FLINK_JOBMANAGER_PORT}:${FLINK_JOBMANAGER_PORT}"
@@ -43,7 +43,7 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       args:
-        JAVA_HOME: /opt/java/openjdk
+        JAVA_HOME: /usr/lib/jvm/java-11-openjdk-arm64
         JAVA_VERSION: 11
         FLINK_VERSION: 1.17.0
         FLINK_HOME: /opt/flink
@@ -57,7 +57,7 @@ services:
       FLINK_PROPERTIES: taskmanager.rpc.address:taskmanager
       HADOOP_HOME: /opt/hadoop-3.3.6
       HADOOP_CONF_DIR: ${HADOOP_CONF_DIR}
-      JAVA_HOME: /opt/java/openjdk
+      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-arm64
     container_name: flink-taskmanager
     depends_on:
       - jobmanager
