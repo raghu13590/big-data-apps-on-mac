@@ -242,6 +242,6 @@ debug-config:
 
 render: ## Render docker-compose.yml from Jinja template
 	@echo "Rendering $(SERVICE_NAME)..."
-	@echo "$(GREEN)Building jinja2-renderer image...$(NC)"
+	@echo "$(GREEN)Building jinja2-renderer image for $(SERVICE_NAME)...$(NC)"
 	docker build -t jinja2-renderer $(ROOT_DIR)/apps/jinja2
 	docker run --rm -v $(ROOT_DIR)/apps:/app jinja2-renderer python3 jinja2/render.py $(SERVICE_NAME)
