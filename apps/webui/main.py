@@ -107,7 +107,7 @@ def main():
                 st.markdown("<style>textarea { resize: vertical; width: 100% !important; }</style>", unsafe_allow_html=True)
 
     st.header('Service Makefile Targets')
-    SERVICES_DIR = Path(__file__).parent.parent
+    SERVICES_DIR = Path("/apps")
     SERVICES = [d for d in SERVICES_DIR.iterdir() if d.is_dir() and (d / 'Makefile').exists()]
     for service in SERVICES:
         service_name = service.name
