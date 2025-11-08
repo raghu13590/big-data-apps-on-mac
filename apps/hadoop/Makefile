@@ -49,6 +49,7 @@ test:
 
 up: ## Start Hadoop services (normal flow, no reset)
 	@$(MAKE) render
+	@$(MAKE) init
 	@$(MAKE) dependencies
 	@$(MAKE) up-service-health SERVICE=namenode
 	@$(MAKE) up-service-health SERVICE=datanode1
@@ -64,8 +65,9 @@ up: ## Start Hadoop services (normal flow, no reset)
 
 up-reset: ## Perform a full clean install and start Hadoop services
 	@$(MAKE) render
+	@$(MAKE) init
 	@$(MAKE) dependencies
-	@$(MAKE) build-quick
+	@$(MAKE) build
 	@$(MAKE) clean-hadoop
 	@$(MAKE) format-namenode
 	@$(MAKE) up-service-health SERVICE=namenode

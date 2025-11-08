@@ -1,51 +1,8 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.
+# Hadoop + Hive Dockerfile using the common base image
 
-FROM ubuntu:focal AS builder
+FROM big-data-base:latest
 
-# Use bash shell for all RUN commands with pipefail option
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# Set non-interactive frontend and preconfigure tzdata for non-interactive install
-ARG TZ
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=${TZ}
-
-# Disable suggests/recommends to reduce image size and ensure non-interactive installation
-RUN echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/10disableextras && \
-    echo 'APT::Install-Suggests "0";' >> /etc/apt/apt.conf.d/10disableextras && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        wget gnupg software-properties-common lsb-release python3 git maven \
-        openjdk-11-jdk curl ca-certificates autoconf automake libtool \
-        build-essential zlib1g-dev libssl-dev libreadline-dev libffi-dev \
-        libxml2-dev libxslt1-dev locales libsnappy-dev libbz2-dev liblzo2-2 \
-        liblzo2-dev libzstd-dev libunwind-dev libkrb5-dev libpam0g-dev gcc g++ \
-        make pkg-config libtirpc-dev libsasl2-dev libgsasl7-dev protobuf-compiler \
-        libprotobuf-dev pmdk-tools libpmem-dev cmake nasm netcat net-tools less nano \
-        postgresql-client && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Set locale
-ARG LANG
-ARG LANGUAGE
-ARG LC_ALL
-ENV LANG=${LANG} LANGUAGE=${LANGUAGE} LC_ALL=${LC_ALL}
-ARG PYTHONIOENCODING
-ENV PYTHONIOENCODING=${PYTHONIOENCODING}
-
-# Install ISA-L from source and clean up after building to reduce image size
-RUN git clone https://github.com/intel/isa-l.git /isa-l-src && \
-    cd /isa-l-src && \
-    ./autogen.sh && \
-    ./configure --prefix=/usr && \
-    make -j$(nproc) && \
-    make install && \
-    cd / && \
-    rm -rf /isa-l-src
-
-# Set environment variables required to build Hadoop
+# Set build args and environment variables
 ARG MAVEN_HOME
 ARG JAVA_HOME
 ARG MAVEN_OPTS
@@ -55,13 +12,38 @@ ARG POSTGRES_JDBC_VERSION
 ARG HADOOP_USER
 ARG HIVE_USER
 ARG SUPERGROUP
+
 ENV MAVEN_HOME=${MAVEN_HOME}
 ENV JAVA_HOME=${JAVA_HOME}
 ENV MAVEN_OPTS=${MAVEN_OPTS}
 ENV HADOOP_VERSION=${HADOOP_VERSION}
 ENV HIVE_VERSION=${HIVE_VERSION}
 
-# Build Hadoop from source and clean up unnecessary files
+
+# Install build dependencies for Hadoop native
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        git maven autoconf automake libtool build-essential \
+        zlib1g-dev libssl-dev libreadline-dev libffi-dev \
+        libxml2-dev libxslt1-dev libsnappy-dev libbz2-dev \
+        liblzo2-2 liblzo2-dev libzstd-dev libunwind-dev \
+        libkrb5-dev libpam0g-dev gcc g++ make pkg-config \
+        libtirpc-dev libsasl2-dev libgsasl7-dev protobuf-compiler \
+        libprotobuf-dev pmdk-tools libpmem-dev cmake nasm \
+        postgresql-client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Build ISA-L from source
+RUN git clone https://github.com/intel/isa-l.git /isa-l-src && \
+    cd /isa-l-src && \
+    ./autogen.sh && \
+    ./configure --prefix=/usr && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && rm -rf /isa-l-src
+
+# Build Hadoop from source
 RUN git clone --branch rel/release-$HADOOP_VERSION --depth 1 https://github.com/apache/hadoop.git /hadoop-src && \
     cd /hadoop-src && \
     mvn clean package -Pdist,native -DskipTests -Dtar -Dmaven.javadoc.skip=true \
@@ -81,7 +63,7 @@ RUN wget https://downloads.apache.org/hive/hive-$HIVE_VERSION/apache-hive-$HIVE_
     rm -f apache-hive-$HIVE_VERSION-bin.tar.gz && \
     wget https://jdbc.postgresql.org/download/postgresql-${POSTGRES_JDBC_VERSION}.jar -O /opt/hive-$HIVE_VERSION/lib/postgresql-jdbc.jar
 
-# Set environment variables
+# Set Hadoop/Hive environment variables
 ENV HADOOP_HOME=/opt/hadoop-$HADOOP_VERSION
 ENV HIVE_HOME=/opt/hive-$HIVE_VERSION
 ENV PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$HIVE_HOME/bin:/usr/bin
@@ -103,6 +85,5 @@ RUN chmod +x /entrypoint.sh
 USER ${HADOOP_USER}
 WORKDIR /home/${HADOOP_USER}
 
-# Set the entrypoint and default command
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash"]
