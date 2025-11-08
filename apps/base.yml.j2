@@ -30,5 +30,5 @@ services:
 
 networks:
   {{ NETWORK }}:
-    driver: bridge
+    external: true
 {%- block volumes -%}{%- endblock -%}

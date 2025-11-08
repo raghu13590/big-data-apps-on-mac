@@ -1,8 +1,11 @@
 FROM big-data-base:latest
 
 # Set environment variables for Kafka
-ENV KAFKA_VERSION=3.5.1
-ENV KAFKA_HOME=/opt/kafka
+ARG KAFKA_VERSION
+ARG KAFKA_HOME
+
+ENV KAFKA_VERSION=${KAFKA_VERSION}
+ENV KAFKA_HOME=${KAFKA_HOME}
 ENV PATH=$PATH:$KAFKA_HOME/bin
 
 # Download and install Kafka

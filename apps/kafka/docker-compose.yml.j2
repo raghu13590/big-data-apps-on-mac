@@ -6,10 +6,15 @@
     {"id": 3, "port": 9094, "name": "kafka3"}
 ] %}
 
+{% set kakfa_build_args = {
+  "KAFKA_VERSION": KAFKA_VERSION,
+  "KAFKA_HOME": KAFKA_HOME
+} %}
+
 {% block services %}
   {% for node in kafka_nodes %}
   {{ node.name }}:
-    {{ build_context() | indent(4) }}
+    {{ build_context(args=kakfa_build_args) | indent(4) }}
     container_name: {{ node.name }}
     ports:
       - "{{ node.port }}:9092"

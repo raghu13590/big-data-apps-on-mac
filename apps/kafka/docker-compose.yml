@@ -5,6 +5,9 @@ services:
   kafka1:
     build:
       context: ${BUILD_CONTEXT}
+      args:
+        KAFKA_VERSION: 3.5.1
+        KAFKA_HOME: /opt/kafka
     container_name: kafka1
     ports:
       - "9092:9092"
@@ -21,6 +24,9 @@ services:
   kafka2:
     build:
       context: ${BUILD_CONTEXT}
+      args:
+        KAFKA_VERSION: 3.5.1
+        KAFKA_HOME: /opt/kafka
     container_name: kafka2
     ports:
       - "9093:9092"
@@ -37,6 +43,9 @@ services:
   kafka3:
     build:
       context: ${BUILD_CONTEXT}
+      args:
+        KAFKA_VERSION: 3.5.1
+        KAFKA_HOME: /opt/kafka
     container_name: kafka3
     ports:
       - "9094:9092"
@@ -52,4 +61,4 @@ services:
   
 networks:
   big-data-network:
-    driver: bridge
+    external: true
