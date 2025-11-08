@@ -37,7 +37,7 @@ environment:
       - ${APP_DATA_DIR}/jars:${FLINK_HOME}/user-jars
     command: ${FLINK_HOME}/bin/jobmanager.sh start-foreground
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("curl -f " ~ FLINK_JOBMANAGER_HEALTHCHECK_URL ~ " || exit 1") | indent(4) }}
 
   taskmanager:
@@ -55,7 +55,7 @@ environment:
       - ${APP_DATA_DIR}/jars:${FLINK_HOME}/user-jars
     command: ${FLINK_HOME}/bin/taskmanager.sh start-foreground
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("curl -sf " ~ FLINK_TASKMANAGER_HEALTHCHECK_URL ~ " | grep 'taskmanagers' || exit 1") | indent(4) }}
 {% endblock %}
 {% block volumes %}

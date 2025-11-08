@@ -39,7 +39,7 @@ environment:
       - ${APP_DATA_DIR}/datasets:/datasets
     command: namenode
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("nc -zv namenode 9000") | indent(4) }}
 
   datanode1:
@@ -57,7 +57,7 @@ environment:
       - ${APP_DATA_DIR}/datasets:/datasets
     command: datanode
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("curl -f http://localhost:9864") | indent(4) }}
 
   datanode2:
@@ -75,7 +75,7 @@ environment:
       - ${APP_DATA_DIR}/datasets:/datasets
     command: datanode
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("curl -f http://localhost:9864") | indent(4) }}
 
   resourcemanager:
@@ -91,7 +91,7 @@ environment:
       - ${CONFIGS_DIR}:${HADOOP_CONF_DIR}
     command: resourcemanager
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("curl -f http://resourcemanager:8088/isActive") | indent(4) }}
 
   nodemanager1:
@@ -107,7 +107,7 @@ environment:
       - ${CONFIGS_DIR}:${HADOOP_CONF_DIR}
     command: nodemanager
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("curl -f http://localhost:8042") | indent(4) }}
 
   nodemanager2:
@@ -123,7 +123,7 @@ environment:
       - ${CONFIGS_DIR}:${HADOOP_CONF_DIR}
     command: nodemanager
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("curl -f http://localhost:8042") | indent(4) }}
 
   postgres:
@@ -137,7 +137,7 @@ environment:
     volumes:
       - ${APP_DATA_DIR}/postgres:/var/lib/postgresql/data
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("pg_isready -U hive -d metastore") | indent(4) }}
 
   metastore:
@@ -153,7 +153,7 @@ environment:
       - ${APP_DATA_DIR}/metastore:/opt/hive-4.0.1/metastore_db
     command: metastore
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("nc -zv localhost 9083") | indent(4) }}
 
   hiveserver2:
@@ -171,6 +171,6 @@ environment:
       - "10000:10000"
     command: hiveserver2
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("nc -zv localhost 10000") | indent(4) }}
 {% endblock %}

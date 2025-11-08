@@ -52,4 +52,4 @@ services:
   
 networks:
   big-data-network:
-    external: true
+    driver: bridge

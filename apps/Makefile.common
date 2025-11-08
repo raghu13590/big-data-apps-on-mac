@@ -36,7 +36,6 @@ SCRIPTS_DIR := $(ROOT_DIR)/apps/scripts
 
 BASE_DOCKERFILE := $(ROOT_DIR)/apps/Dockerfile
 COMPOSE_FILE := $(abspath $(CURDIR)/docker-compose.yml)
-COMMON_COMPOSE_FILE := $(abspath $(CURDIR)/../docker-compose.common.yml)
 ENV_COMMON_FILE := $(abspath $(CURDIR)/../.env)
 ENV_SERVICE_FILE := $(abspath $(CURDIR)/.env)
 
@@ -44,7 +43,6 @@ ENV_SERVICE_FILE := $(abspath $(CURDIR)/.env)
 SERVICE_NAME := $(notdir $(CURDIR))
 
 DOCKER_COMPOSE := docker compose \
-    -f $(COMMON_COMPOSE_FILE) \
     -f $(COMPOSE_FILE) \
     -p $(SERVICE_NAME) \
     --env-file $(ENV_COMMON_FILE) \
@@ -84,6 +82,7 @@ build-no-cache: build-base ## Build Docker images without using cache
 	@echo "$(GREEN)Build complete!$(NC)"
 
 build: build-base ## Build Docker images using cache
+	@$(MAKE) build-base
 	@echo "$(GREEN)Building Docker images for $(SERVICE_NAME)...$(NC)"
 	$(DOCKER_COMPOSE) build
 
@@ -131,7 +130,8 @@ up-service-health: ## Start a single service and wait for it to be healthy: make
 	@$(MAKE) health-service-retry SERVICE=$(SERVICE)
 
 init: ## Initialize service-specific resources (override in service Makefile if needed)
-	@: # No-op
+	@$(MAKE) network
+	@$(MAKE) build-base
 
 down: ## Stop all services for this project
 	@echo "$(RED)Stopping services for $(SERVICE_NAME)...$(NC)"
@@ -223,6 +223,16 @@ health-service-retry:
 	done; \
 	echo "Service $(SERVICE) failed to become healthy after 5 minutes."; \
 	exit 1
+
+network:
+	@set -a; \
+    if [ -f "$(CURDIR)/../.env" ]; then . "$(CURDIR)/../.env"; fi; \
+    if ! docker network ls --format '{{.Name}}' | grep -wq "$$NETWORK"; then \
+        echo "Creating network $$NETWORK"; \
+        docker network create "$$NETWORK"; \
+    else \
+        echo "Network $$NETWORK already exists"; \
+    fi
 
 debug-env:
 	@echo "ROOT_DIR: $(ROOT_DIR)"

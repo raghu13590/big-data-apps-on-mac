@@ -18,6 +18,6 @@
       - ${CONFIGS_DIR}/zoo.cfg:/conf/zoo.cfg
       - ${APP_DATA_DIR}/{{ zk.name }}/data:/data
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
 {% endfor %}
 {% endblock %}

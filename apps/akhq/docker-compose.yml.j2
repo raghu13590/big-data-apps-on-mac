@@ -12,5 +12,5 @@
       - ${CONFIGS_DIR}/application.yml:/app/application.yml
       - ${APP_DATA_DIR}:/app/volumes
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
 {% endblock %}

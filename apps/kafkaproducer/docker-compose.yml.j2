@@ -11,6 +11,6 @@
     volumes:
       - ${APP_DATA_DIR}:/app/data
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("pgrep -f 'python /app/kafkaproducer.py' || exit 1") | indent(4)}}
 {% endblock %}

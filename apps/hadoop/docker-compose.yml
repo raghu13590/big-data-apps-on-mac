@@ -346,4 +346,4 @@ services:
       test: [ "CMD-SHELL", "nc -zv localhost 10000" ]
 networks:
   big-data-network:
-    external: true
+    driver: bridge

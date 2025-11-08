@@ -21,6 +21,6 @@
       - ${CONFIGS_DIR}/server.properties:/opt/kafka/config/server.properties
       - ${APP_DATA_DIR}/{{ node.name }}:/var/lib/kafka/data
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
   {% endfor %}
 {% endblock %}

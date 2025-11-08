@@ -47,7 +47,7 @@ environment:
       - ${APP_DATA_DIR}/controller/data:/var/pinot/controller/data
       - ${APP_DATA_DIR}/controller/logs:/var/pinot/controller/logs
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck('curl -f http://localhost:9000/health') | indent(4) }}
 
   pinot-broker:
@@ -63,7 +63,7 @@ environment:
       pinot-controller:
         condition: service_healthy
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck('curl -f http://localhost:8099/health') | indent(4) }}
 
   pinot-server-1:
@@ -81,7 +81,7 @@ environment:
       pinot-broker:
         condition: service_healthy
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck('curl -f http://localhost:8097/health') | indent(4) }}
 
   pinot-server-2:
@@ -99,7 +99,7 @@ environment:
       pinot-broker:
         condition: service_healthy
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck('curl -f http://localhost:8097/health') | indent(4) }}
 
   pinot-minion:
@@ -118,6 +118,6 @@ environment:
       pinot-server-2:
         condition: service_healthy
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck('curl -f http://localhost:9514/health') | indent(4) }}
 {% endblock %}

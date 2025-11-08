@@ -130,4 +130,4 @@ services:
       test: [ "CMD-SHELL", "curl -f http://localhost:18080" ]
 networks:
   big-data-network:
-    external: true
+    driver: bridge

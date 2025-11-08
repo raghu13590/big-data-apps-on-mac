@@ -13,7 +13,7 @@
     volumes:
       - superset_db_data:/var/lib/postgresql/data
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     {{ healthcheck("pg_isready -U " ~ POSTGRES_USER) | indent(4) }}
 
   superset:
@@ -33,7 +33,7 @@
       - ${APP_DATA_DIR}/volumes/superset_home:/app/superset_home
       - ${CONFIGS_DIR}/superset_config.py:/app/pythonpath/superset_config.py
     networks:
-      - {{ BIG_DATA_NETWORK }}
+      - {{ NETWORK }}
     depends_on:
       superset_db:
         condition: service_healthy

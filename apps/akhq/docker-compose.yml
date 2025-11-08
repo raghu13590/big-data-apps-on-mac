@@ -20,4 +20,4 @@ services:
       - big-data-network
 networks:
   big-data-network:
-    external: true
+    driver: bridge
