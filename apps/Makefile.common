@@ -71,19 +71,26 @@ help: ## Show this help message
 	@echo "Available targets:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?##/ {printf "  %-20s %s\n", "$(YELLOW)"$$1"$(NC)", $$2}' $(MAKEFILE_LIST)
 
-build-base: ## Build the base Docker image
-	@echo "$(GREEN)Building base Docker image...$(NC)"
-	ARGS="$$(grep -v '^#' $(ROOT_DIR)/apps/.env | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | sed 's/^/--build-arg /')"; \
-	echo "Build args: $$ARGS"; \
-	docker build $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps
-	@echo "$(GREEN)Base image build complete!$(NC)"
+build-base: ## Build the base Docker image (use NO_CACHE=1 for no cache)
+    @echo "$(GREEN)Building base Docker image...$(NC)"
+    ARGS="$$(grep -v '^#' $(ROOT_DIR)/apps/.env | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | sed 's/^/--build-arg /')"; \
+    echo "Build args: $$ARGS"; \
+    if [ "$(NO_CACHE)" = "1" ]; then \
+        docker build --no-cache $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps; \
+    else \
+        docker build $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps; \
+    fi
+    @echo "$(GREEN)Base image build complete!$(NC)"
 
-build-no-cache: build-base ## Build Docker images without using cache
+build-base-no-cache: ## Build the base Docker image without cache
+    @$(MAKE) build-base NO_CACHE=1
+
+build-no-cache: ## Build Docker images without using cache
 	@echo "$(GREEN)Building Docker images without cache for $(SERVICE_NAME)...$(NC)"
 	$(DOCKER_COMPOSE) build --no-cache
 	@echo "$(GREEN)Build complete!$(NC)"
 
-build: build-base ## Build Docker images using cache
+build: ## Build Docker images using cache
 	@$(MAKE) build-base
 	@echo "$(GREEN)Building Docker images for $(SERVICE_NAME)...$(NC)"
 	$(DOCKER_COMPOSE) build
@@ -111,7 +118,6 @@ up-minimal: ## Start services for this project only
 
 up-minimal-without-jinja2: ## Start services for this project only without rendering and dependencies
 	@echo "$(GREEN)\nStarting services for $(SERVICE_NAME)...$(NC)"
-	@$(MAKE) init
 	$(DOCKER_COMPOSE) up -d
 	@echo "$(GREEN)Waiting for services to be healthy ($(SLEEP_SECS) seconds)...$(NC)"
 	@sleep $(SLEEP_SECS)
