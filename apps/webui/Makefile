@@ -1,5 +1,5 @@
 build:
-	docker build --no-cache -t webui .
+	docker build -t webui .
 
 up:
 	make build

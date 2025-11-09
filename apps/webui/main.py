@@ -46,52 +46,65 @@ def main():
 
     st.header('Docker Containers')
     containers = get_containers()
+
     if not containers:
         st.info('No containers found.')
     else:
-
+        # Group containers by the first part of their image (before colon or dash)
+        from collections import defaultdict
+        import re
+        groups = defaultdict(list)
         for c in containers:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.subheader(f"{c['name']}")
-                st.write(f"Image: {c['image']}")
-                status_color = {'running': 'green', 'exited': 'red', 'paused': 'orange'}.get(c['status'], 'grey')
-                st.markdown(f"<span style='color:{status_color};font-weight:bold;'>Status: {c['status'].capitalize()}</span>", unsafe_allow_html=True)
-            with col2:
-                if c['status'] == 'running':
-                    if st.button(f"Stop {c['name']}"):
-                        stop_container(c['id'])
-                        st.experimental_rerun()
-                    if st.button(f"Restart {c['name']}"):
-                        restart_container(c['id'])
-                        st.experimental_rerun()
-                else:
-                    if st.button(f"Start {c['name']}"):
-                        start_container(c['id'])
-                        st.experimental_rerun()
+            # Extract group from image: before first colon or dash
+            image = c['image']
+            m = re.match(r"([\w\-/]+?)[-:].*", image)
+            group = m.group(1) if m else image
+            groups[group].append(c)
 
-            # Show logs button and display
-            log_state_key = f"show_logs_{c['id']}"
-            log_btn_key = f"btn_show_logs_{c['id']}"
-            if log_state_key not in st.session_state:
-                st.session_state[log_state_key] = False
+        for group_name in sorted(groups.keys()):
+            with st.expander(f"{group_name} ({len(groups[group_name])})", expanded=True):
+                for c in groups[group_name]:
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.subheader(f"{c['name']}")
+                        st.write(f"Image: {c['image']}")
+                        status_color = {'running': 'green', 'exited': 'red', 'paused': 'orange'}.get(c['status'], 'grey')
+                        st.markdown(f"<span style='color:{status_color};font-weight:bold;'>Status: {c['status'].capitalize()}</span>", unsafe_allow_html=True)
+                    with col2:
+                        if c['status'] == 'running':
+                            if st.button(f"Stop {c['name']}"):
+                                stop_container(c['id'])
+                                st.experimental_rerun()
+                            if st.button(f"Restart {c['name']}"):
+                                restart_container(c['id'])
+                                st.experimental_rerun()
+                        else:
+                            if st.button(f"Start {c['name']}"):
+                                start_container(c['id'])
+                                st.experimental_rerun()
 
-            if st.button(
-                f"{'Hide' if st.session_state[log_state_key] else 'Show'} Logs for {c['name']}", key=log_btn_key
-            ):
-                st.session_state[log_state_key] = not st.session_state[log_state_key]
+                    # Show logs button and display
+                    log_state_key = f"show_logs_{c['id']}"
+                    log_btn_key = f"btn_show_logs_{c['id']}"
+                    if log_state_key not in st.session_state:
+                        st.session_state[log_state_key] = False
 
-            if st.session_state[log_state_key]:
-                logs = get_container_logs(c['id'], tail=200)
-                st.text_area(
-                    f"Logs: {c['name']}",
-                    logs,
-                    height=400,
-                    key=f"logs_area_{c['id']}",
-                    args=None,
-                    disabled=True
-                )
-                st.markdown("<style>textarea { resize: vertical; width: 100% !important; }</style>", unsafe_allow_html=True)
+                    if st.button(
+                        f"{'Hide' if st.session_state[log_state_key] else 'Show'} Logs for {c['name']}", key=log_btn_key
+                    ):
+                        st.session_state[log_state_key] = not st.session_state[log_state_key]
+
+                    if st.session_state[log_state_key]:
+                        logs = get_container_logs(c['id'], tail=200)
+                        st.text_area(
+                            f"Logs: {c['name']}",
+                            logs,
+                            height=400,
+                            key=f"logs_area_{c['id']}",
+                            args=None,
+                            disabled=True
+                        )
+                        st.markdown("<style>textarea { resize: vertical; width: 100% !important; }</style>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
