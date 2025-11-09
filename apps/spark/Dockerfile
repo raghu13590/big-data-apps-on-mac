@@ -1,25 +1,22 @@
 # Dockerfile for Spark Cluster
 
-# Use Ubuntu focal as the base image
-FROM ubuntu:focal
+# Use the base Dockerfile
+FROM big-data-base:latest
 
-# Set the Spark version as an argument
-ARG SPARK_VERSION
-ENV SPARK_VERSION=${SPARK_VERSION}
+# Set the Spark and Hadoop versions
 ARG HADOOP_VERSION
-ENV HADOOP_VERSION=${HADOOP_VERSION}
-ARG SPARK_HADOOP_VERSION
-ENV SPARK_HADOOP_VERSION=${SPARK_HADOOP_VERSION}
 ARG HADOOP_HOME
+ARG HADOOP_CONF_DIR
+ARG SPARK_VERSION
+ARG SPARK_HADOOP_VERSION
+ARG SPARK_HOME
+
+ENV HADOOP_VERSION=${HADOOP_VERSION}
 ENV HADOOP_HOME=${HADOOP_HOME}
-
-# Prevent apt-get from prompting for timezone configuration
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install OpenJDK, gcc, and other dependencies
-RUN apt-get update && \
-    apt-get install -y openjdk-11-jdk wget curl python3 python3-pip tzdata build-essential gawk bison gettext texinfo && \
-    rm -rf /var/lib/apt/lists/*
+ENV HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
+ENV SPARK_VERSION=${SPARK_VERSION}
+ENV SPARK_HADOOP_VERSION=${SPARK_HADOOP_VERSION}
+ENV SPARK_HOME=${SPARK_HOME}
 
 # Download and extract glibc source files
 RUN wget https://ftp.gnu.org/gnu/glibc/glibc-2.36.tar.gz && \
@@ -27,10 +24,10 @@ RUN wget https://ftp.gnu.org/gnu/glibc/glibc-2.36.tar.gz && \
     rm glibc-2.36.tar.gz
 
 # Compile the C source files
-WORKDIR /opt/glibc-2.36
-RUN mkdir build && cd build && ../configure --disable-sanity-checks && make
+# WORKDIR /opt/glibc-2.36
+# RUN mkdir build && cd build && ../configure --disable-sanity-checks && make
 
-RUN echo "spark verison is ${SPARK_VERSION} and spark hadoop version is ${SPARK_HADOOP_VERSION}"
+RUN echo "spark verison is ${SPARK_VERSION} and spark hadoop version is ${SPARK_HADOOP_VERSION} and hadoop version is ${HADOOP_VERSION} and hadoop home is ${HADOOP_HOME}"
 
 # Install Spark
 RUN wget https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${SPARK_HADOOP_VERSION}.tgz && \
@@ -43,11 +40,13 @@ RUN wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/had
     && tar -xzf hadoop-${HADOOP_VERSION}.tar.gz -C /opt \
     && rm hadoop-${HADOOP_VERSION}.tar.gz
 
+# install pyspark
+RUN pip3 install pyspark
+
 # Set environment variables
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
-ENV SPARK_HOME=/opt/spark
+ENV SPARK_HOME=${SPARK_HOME}
 ENV HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
-ENV PATH=$PATH:$JAVA_HOME/bin:$SPARK_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+ENV PATH=$PATH:$SPARK_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
 
 # Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -58,8 +57,3 @@ EXPOSE 8082 8083 8084 7077 18080
 
 # Set the entrypoint script
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
-# Reset DEBIAN_FRONTEND to avoid affecting other tools
-RUN unset DEBIAN_FRONTEND
-
-RUN pip3 install pyspark

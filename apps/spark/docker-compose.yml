@@ -4,6 +4,12 @@ services:
   spark-master:
     build:
       context: ${BUILD_CONTEXT}
+      args:
+        HADOOP_VERSION: 3.3.6
+        HADOOP_HOME: /opt/hadoop-3.3.6
+        HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
+        SPARK_VERSION: 3.2.1
+        SPARK_HADOOP_VERSION: 3.2
     container_name: spark-master
     ports:
       - "7077:7077"
@@ -39,6 +45,12 @@ services:
   spark-worker-1:
     build:
       context: ${BUILD_CONTEXT}
+      args:
+        HADOOP_VERSION: 3.3.6
+        HADOOP_HOME: /opt/hadoop-3.3.6
+        HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
+        SPARK_VERSION: 3.2.1
+        SPARK_HADOOP_VERSION: 3.2
     container_name: spark-worker-1
     environment:
       - SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI_PORT_1}
@@ -74,6 +86,12 @@ services:
   spark-worker-2:
     build:
       context: ${BUILD_CONTEXT}
+      args:
+        HADOOP_VERSION: 3.3.6
+        HADOOP_HOME: /opt/hadoop-3.3.6
+        HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
+        SPARK_VERSION: 3.2.1
+        SPARK_HADOOP_VERSION: 3.2
     container_name: spark-worker-2
     environment:
       - SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI_PORT_2}
@@ -110,6 +128,12 @@ services:
   spark-history:
     build:
       context: ${BUILD_CONTEXT}
+      args:
+        HADOOP_VERSION: 3.3.6
+        HADOOP_HOME: /opt/hadoop-3.3.6
+        HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
+        SPARK_VERSION: 3.2.1
+        SPARK_HADOOP_VERSION: 3.2
     container_name: spark-history
     ports:
       - "18080:18080"
@@ -130,4 +154,4 @@ services:
       test: [ "CMD-SHELL", "curl -f http://localhost:18080" ]
 networks:
   big-data-network:
-    driver: bridge
+    external: true

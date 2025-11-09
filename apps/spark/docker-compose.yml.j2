@@ -5,9 +5,17 @@
     {"id": 2, "name": "spark-worker-2", "port": 8075, "webui_port": "${SPARK_WORKER_WEBUI_PORT_2}"}
 ] %}
 
+{% set spark_build_args = {
+  "HADOOP_VERSION": HADOOP_VERSION,
+  "HADOOP_HOME": HADOOP_HOME,
+  "HADOOP_CONF_DIR": HADOOP_CONF_DIR,
+  "SPARK_VERSION": SPARK_VERSION,
+  "SPARK_HADOOP_VERSION": SPARK_HADOOP_VERSION,
+} %}
+
 {% block services %}
   spark-master:
-    {{ build_context() | indent(4) }}
+    {{ build_context(args=spark_build_args) | indent(4) }}
     container_name: spark-master
     ports:
       - "7077:7077"
@@ -37,7 +45,7 @@
 
   {% for worker in spark_workers %}
   {{ worker.name }}:
-    {{ build_context() | indent(4) }}
+    {{ build_context(args=spark_build_args) | indent(4) }}
     container_name: {{ worker.name }}
     environment:
       - SPARK_WORKER_WEBUI_PORT={{ worker.webui_port }}
@@ -68,7 +76,7 @@
   {% endfor %}
 
   spark-history:
-    {{ build_context() | indent(4) }}
+    {{ build_context(args=spark_build_args) | indent(4) }}
     container_name: spark-history
     ports:
       - "18080:18080"
