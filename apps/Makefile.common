@@ -72,15 +72,15 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?##/ {printf "  %-20s %s\n", "$(YELLOW)"$$1"$(NC)", $$2}' $(MAKEFILE_LIST)
 
 build-base: ## Build the base Docker image (use NO_CACHE=1 for no cache)
-    @echo "$(GREEN)Building base Docker image...$(NC)"
-    ARGS="$$(grep -v '^#' $(ROOT_DIR)/apps/.env | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | sed 's/^/--build-arg /')"; \
-    echo "Build args: $$ARGS"; \
-    if [ "$(NO_CACHE)" = "1" ]; then \
-        docker build --no-cache $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps; \
-    else \
-        docker build $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps; \
-    fi
-    @echo "$(GREEN)Base image build complete!$(NC)"
+	@echo "$(GREEN)Building base Docker image...$(NC)"
+	ARGS="$$(grep -v '^#' $(ROOT_DIR)/apps/.env | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | sed 's/^/--build-arg /')"; \
+	echo "Build args: $$ARGS"; \
+	if [ "$(NO_CACHE)" = "1" ]; then \
+		docker build --no-cache $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps; \
+	else \
+		docker build $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps; \
+	fi
+	@echo "$(GREEN)Base image build complete!$(NC)"
 
 build-base-no-cache: ## Build the base Docker image without cache
     @$(MAKE) build-base NO_CACHE=1
