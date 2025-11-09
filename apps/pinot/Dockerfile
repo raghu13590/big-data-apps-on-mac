@@ -1,13 +1,14 @@
 FROM big-data-base:latest
 
 # Additional environment variables specific to Pinot
-ENV PINOT_HOME=/opt/pinot
-ENV PATH=$PATH:${PINOT_HOME}/bin
-ENV JVM_OPTS="-Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication"
+ARG PINOT_HOME
+ARG PINOT_VERSION
 
 # Build arguments
-ARG PINOT_VERSION
+ENV PINOT_HOME=${PINOT_HOME}
+ENV PATH=$PATH:${PINOT_HOME}/bin
 ENV PINOT_VERSION=${PINOT_VERSION}
+ENV JVM_OPTS="-Xms1G -Xmx4G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication"
 
 # Install additional tools needed for Pinot
 RUN apt-get update && \

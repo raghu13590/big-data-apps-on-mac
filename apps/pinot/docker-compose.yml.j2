@@ -1,7 +1,8 @@
 {% extends "base.yml.j2" %}
 
 {% set pinot_build_args = {
-  "PINOT_VERSION": PINOT_VERSION
+  "PINOT_VERSION": PINOT_VERSION,
+  "PINOT_HOME": PINOT_HOME
 } %}
 
 {% macro pinot_env(component, host, port, admin_port, instance_id) -%}

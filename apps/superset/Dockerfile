@@ -3,9 +3,6 @@
 
 FROM big-data-base:latest
 
-# Use bash shell for all RUN commands with pipefail option
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # Superset-specific dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends redis-server postgresql postgresql-contrib gosu \
@@ -15,8 +12,8 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Python dependencies
-RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install apache-superset==2.1.3 pinotdb psycopg2-binary redis "Flask<2.3" marshmallow_enum
+RUN python${PYTHON_VERSION} -m pip install --upgrade pip && \
+    python${PYTHON_VERSION} -m pip install apache-superset==2.1.3 pinotdb psycopg2-binary redis "Flask<2.3" marshmallow_enum
 
 ARG SUPERSET_USER=superset
 ENV SUPERSET_USER=${SUPERSET_USER}
