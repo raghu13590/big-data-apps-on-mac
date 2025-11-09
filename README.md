@@ -137,6 +137,12 @@ Place message files in `app-data/kafkaproducer/messages/`
 cd apps/hadoop
 make up
 ```
+if you're running for the first time use
+```sh
+cd apps/hadoop
+make up-reset
+```
+
 Namenode UI: http://localhost:9870
 ResourceManager UI: http://localhost:8088
 
