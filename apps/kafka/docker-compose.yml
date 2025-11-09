@@ -1,26 +1,64 @@
-x-build-default: &build-default
-  build:
-    context: ${BUILD_CONTEXT}
 
-x-healthcheck-default: &healthcheck-default
-  interval: ${HEALTHCHECK_INTERVAL}
-  timeout: ${HEALTHCHECK_TIMEOUT}
-  retries: ${HEALTHCHECK_RETRIES}
 
 services:
-  kafka:
-    <<: *build-default
-    image: bitnamilegacy/kafka:3.9.0
-    container_name: kafka
+  
+  kafka1:
+    build:
+      context: ${BUILD_CONTEXT}
+      args:
+        KAFKA_VERSION: 3.5.1
+        KAFKA_HOME: /opt/kafka
+    container_name: kafka1
     ports:
       - "9092:9092"
-    env_file:
-      - ${ENV_SERVICE_FILE}
-    healthcheck:
-      <<: *healthcheck-default
-      test: [ "CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 && exit 0 || exit 1" ]
+    command: ["/opt/kafka/bin/kafka-server-start.sh", "/opt/kafka/config/server.properties"]
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ADVERTISED_HOST_NAME=kafka1
     volumes:
-      - ${CONFIGS_DIR}:/bitnami/kafka/config
-      - ${APP_DATA_DIR}/volumes:/bitnami/kafka/data
+      - ${CONFIGS_DIR}/server.properties:/opt/kafka/config/server.properties
+      - ${APP_DATA_DIR}/kafka1:/var/lib/kafka/data
     networks:
-      - ${BIG_DATA_NETWORK}
+      - big-data-network
+  
+  kafka2:
+    build:
+      context: ${BUILD_CONTEXT}
+      args:
+        KAFKA_VERSION: 3.5.1
+        KAFKA_HOME: /opt/kafka
+    container_name: kafka2
+    ports:
+      - "9093:9092"
+    command: ["/opt/kafka/bin/kafka-server-start.sh", "/opt/kafka/config/server.properties"]
+    environment:
+      - KAFKA_BROKER_ID=2
+      - KAFKA_ADVERTISED_HOST_NAME=kafka2
+    volumes:
+      - ${CONFIGS_DIR}/server.properties:/opt/kafka/config/server.properties
+      - ${APP_DATA_DIR}/kafka2:/var/lib/kafka/data
+    networks:
+      - big-data-network
+  
+  kafka3:
+    build:
+      context: ${BUILD_CONTEXT}
+      args:
+        KAFKA_VERSION: 3.5.1
+        KAFKA_HOME: /opt/kafka
+    container_name: kafka3
+    ports:
+      - "9094:9092"
+    command: ["/opt/kafka/bin/kafka-server-start.sh", "/opt/kafka/config/server.properties"]
+    environment:
+      - KAFKA_BROKER_ID=3
+      - KAFKA_ADVERTISED_HOST_NAME=kafka3
+    volumes:
+      - ${CONFIGS_DIR}/server.properties:/opt/kafka/config/server.properties
+      - ${APP_DATA_DIR}/kafka3:/var/lib/kafka/data
+    networks:
+      - big-data-network
+  
+networks:
+  big-data-network:
+    external: true

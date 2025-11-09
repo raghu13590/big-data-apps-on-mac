@@ -29,8 +29,9 @@ echo "Listing flink home directory:"
 ls -l $FLINK_HOME
 echo "Listing Flink bin directory:"
 ls -l $FLINK_HOME/bin
-echo "Checking flink and hadoop paths:"
+echo "Checking flink paths:"
 which flink
+echo "Checking hadoop paths:"
 which hadoop
 
 # Source Flink environment variables if the file exists
@@ -44,7 +45,7 @@ if hadoop fs -test -d / 2>/dev/null; then
     hadoop fs -mkdir -p $FLINK_HDFS_LIB_PATH 2>/dev/null || true
     hadoop fs -put $FLINK_HOME/lib/* $FLINK_HDFS_LIB_PATH/ 2>/dev/null || echo "Failed to copy libs to HDFS, continuing..."
 else
-    echo "Hadoop not accessible, skipping HDFS library copy..."
+    echo "Hadoop is not accessible, skipping HDFS library copy..."
 fi
 
 # Add to entrypoint.sh before starting Flink

@@ -1,10 +1,8 @@
 # Dockerfile for Flink Cluster
 
-# Use the official Flink image as base
-FROM flink:1.17.0-scala_2.12
+# Use the custom base image built from apps/Dockerfile
+FROM big-data-base:latest
 
-# Load environment variables from .env
-COPY .env /opt/flink/.env
 
 # Set environment variables
 ARG FLINK_VERSION
@@ -16,22 +14,23 @@ ARG FLINK_HOME
 ARG HADOOP_HOME
 ARG FLINK_LIB_PATH
 
-ENV JAVA_HOME=/opt/java/openjdk
 ENV FLINK_HOME=${FLINK_HOME}
 ENV HADOOP_HOME=${HADOOP_HOME}
 ENV HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
 ENV YARN_CONF_DIR=${HADOOP_CONF_DIR}
 ENV HADOOP_USER_NAME=${HADOOP_USER_NAME}
-ENV PATH=${PATH}:${HADOOP_HOME}/bin
 ENV FLINK_LIB_PATH=${FLINK_LIB_PATH}
+ENV PATH="${PATH}:${HADOOP_HOME}/bin:${FLINK_HOME}/bin"
 
 # Switch to root to install packages
 USER root
 
-# Install additional dependencies
-RUN apt-get update && \
-    apt-get install -y wget curl python3 python3-pip sudo && \
-    rm -rf /var/lib/apt/lists/*
+# Download and extract Flink distribution using build args
+RUN wget https://archive.apache.org/dist/flink/flink-${FLINK_VERSION}/flink-${FLINK_VERSION}-bin-scala_${SCALA_VERSION}.tgz -O /tmp/flink.tgz && \
+    mkdir -p /opt/flink && \
+    tar -xzf /tmp/flink.tgz -C /opt && \
+    mv /opt/flink-${FLINK_VERSION}/* /opt/flink/ && \
+    rm -rf /opt/flink-${FLINK_VERSION} /tmp/flink.tgz
 
 # Install Hadoop
 RUN wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz && \

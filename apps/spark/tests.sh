@@ -60,7 +60,7 @@ run_spark_job() {
     run_command "spark-submit --class org.apache.spark.examples.SparkPi \
     --master $master \
     --conf spark.eventLog.enabled=false \
-    /opt/spark/examples/jars/spark-examples_2.12-3.4.3.jar 10" "$test_description"
+    /opt/spark/examples/jars/spark-examples_2.12-3.2.1.jar 10" "$test_description"
 
     # Update test status based on the description
     case "$test_description" in

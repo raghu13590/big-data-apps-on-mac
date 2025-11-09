@@ -1,4 +1,0 @@
-# docker-compose.common.yml
-networks:
-  big-data-network:
-    external: true

@@ -13,15 +13,17 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 DATA_DIR = os.getenv('DATA_DIR', '/app/data/messages')
 
 # Define topics, create directories with topic names in /app/data/messages and add messages in those directories
-TOPICS = ['taa_in']  # Add more topics as needed
+TOPICS = ['your_topic']  # Add more topics as needed
 
 # Ensure the topic directories exist
 for topic in TOPICS:
     os.makedirs(os.path.join(DATA_DIR, topic), exist_ok=True)
 
+KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS')
+
 # Kafka producer setup
 producer = KafkaProducer(
-    bootstrap_servers='kafka:9092',
+    bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
     value_serializer=lambda v: v.encode('utf-8')
 )
 

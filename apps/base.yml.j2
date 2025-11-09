@@ -1,0 +1,34 @@
+{% macro healthcheck(command, port=None) -%}
+healthcheck:
+  interval: {{ HEALTHCHECK_INTERVAL }}
+  timeout: {{ HEALTHCHECK_TIMEOUT }}
+  retries: {{ HEALTHCHECK_RETRIES }}
+  test: [ "CMD-SHELL", "{{ command }}" ]
+{%- endmacro -%}
+
+{% macro build_context(context=None, args=None) -%}
+build:
+  context: {{ context if context is not none else '${BUILD_CONTEXT}' }}
+  {%- if args %}
+  args:
+    {%- for key, value in args.items() %}
+    {{ key }}: {{ value }}
+    {%- endfor %}
+  {%- endif %}
+{%- endmacro %}
+
+{% macro volume_mount(source, target) -%}
+- {{ source }}:{{ target }}
+{%- endmacro -%}
+
+{% macro port_map(host_port, container_port) -%}
+- "{{ host_port }}:{{ container_port }}"
+{%- endmacro -%}
+
+services:
+{%- block services -%}{%- endblock -%}
+
+networks:
+  {{ NETWORK }}:
+    external: true
+{%- block volumes -%}{%- endblock -%}

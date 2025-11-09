@@ -1,0 +1,48 @@
+{% extends "base.yml.j2" %}
+
+{% block services %}
+  superset_db:
+    image: postgres:12
+    container_name: superset_db
+    environment:
+      POSTGRES_USER: {{ POSTGRES_USER }}
+      POSTGRES_PASSWORD: {{ POSTGRES_PASSWORD }}
+      POSTGRES_DB: {{ POSTGRES_DB }}
+    ports:
+      - "5432:5432"
+    volumes:
+      - superset_db_data:/var/lib/postgresql/data
+    networks:
+      - {{ NETWORK }}
+    {{ healthcheck("pg_isready -U " ~ POSTGRES_USER) | indent(4) }}
+
+  superset:
+    {{ build_context() | indent(4) }}
+    container_name: superset
+    environment:
+      SUPERSET_ENV: {{ SUPERSET_ENV }}
+      SUPERSET_DATABASE_URI: {{ SUPERSET_DATABASE_URI }}
+      POSTGRES_USER: {{ POSTGRES_USER }}
+      POSTGRES_PASSWORD: {{ POSTGRES_PASSWORD }}
+      POSTGRES_DB: {{ POSTGRES_DB }}
+      SUPERSET_CONFIG_PATH: {{ SUPERSET_CONFIG_PATH }}
+      SUPERSET_LOAD_EXAMPLES: {{ SUPERSET_LOAD_EXAMPLES }}
+    ports:
+      - "9088:9088"
+    volumes:
+      - ${APP_DATA_DIR}/volumes/superset_home:/app/superset_home
+      - ${CONFIGS_DIR}/superset_config.py:/app/pythonpath/superset_config.py
+    networks:
+      - {{ NETWORK }}
+    depends_on:
+      superset_db:
+        condition: service_healthy
+    {{ healthcheck("curl -f http://localhost:9088/health || exit 1") | indent(4) }}
+    command: ["/bin/bash"]
+{% endblock %}
+
+{% block volumes %}
+volumes:
+  superset_db_data:
+  superset_home:
+{% endblock %}

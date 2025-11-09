@@ -17,16 +17,13 @@
 #
 
 # Phony targets prevent conflicts with file names
-.PHONY: help build build-quick up up-minimal down down-volumes restart logs clean status ps health dependencies init debug-env debug-config
+.PHONY: help build build-no-cache up up-minimal down down-volumes restart logs clean status ps health dependencies init debug-env debug-config
 
 # Define colors for console output
 RED := $(shell tput setaf 1)
 GREEN := $(shell tput setaf 2)
 YELLOW := $(shell tput setaf 3)
 NC := $(shell tput sgr0)
-
-# Export all variables to sub-makes
-.EXPORT_ALL_VARIABLES:
 
 # Load environment variables from .env if exists
 ifneq (,$(wildcard $(CURDIR)/.env))
@@ -37,8 +34,8 @@ endif
 ROOT_DIR := $(abspath $(CURDIR)/../..)
 SCRIPTS_DIR := $(ROOT_DIR)/apps/scripts
 
+BASE_DOCKERFILE := $(ROOT_DIR)/apps/Dockerfile
 COMPOSE_FILE := $(abspath $(CURDIR)/docker-compose.yml)
-COMMON_COMPOSE_FILE := $(abspath $(CURDIR)/../docker-compose.common.yml)
 ENV_COMMON_FILE := $(abspath $(CURDIR)/../.env)
 ENV_SERVICE_FILE := $(abspath $(CURDIR)/.env)
 
@@ -46,7 +43,6 @@ ENV_SERVICE_FILE := $(abspath $(CURDIR)/.env)
 SERVICE_NAME := $(notdir $(CURDIR))
 
 DOCKER_COMPOSE := docker compose \
-    -f $(COMMON_COMPOSE_FILE) \
     -f $(COMPOSE_FILE) \
     -p $(SERVICE_NAME) \
     --env-file $(ENV_COMMON_FILE) \
@@ -64,7 +60,7 @@ ENV_SERVICE_FILE := $(abspath $(CURDIR)/.env)
 
 export APP_DATA_DIR CONFIGS_DIR SERVICE_NAME ENV_SERVICE_FILE CONFIGS_DIR_HADOOP
 
-SLEEP_SECS := 30
+SLEEP_SECS ?= 30
 
 # Default target
 all: help
@@ -75,12 +71,27 @@ help: ## Show this help message
 	@echo "Available targets:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?##/ {printf "  %-20s %s\n", "$(YELLOW)"$$1"$(NC)", $$2}' $(MAKEFILE_LIST)
 
-build -no-cache: ## Build Docker images without using cache
-	@echo "$(GREEN)Building Docker images for $(SERVICE_NAME)...$(NC)"
+build-base: ## Build the base Docker image (use NO_CACHE=1 for no cache)
+	@echo "$(GREEN)Building base Docker image...$(NC)"
+	ARGS="$$(grep -v '^#' $(ROOT_DIR)/apps/.env | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | sed 's/^/--build-arg /')"; \
+	echo "Build args: $$ARGS"; \
+	if [ "$(NO_CACHE)" = "1" ]; then \
+		docker build --no-cache $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps; \
+	else \
+		docker build $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps; \
+	fi
+	@echo "$(GREEN)Base image build complete!$(NC)"
+
+build-base-no-cache: ## Build the base Docker image without cache
+    @$(MAKE) build-base NO_CACHE=1
+
+build-no-cache: ## Build Docker images without using cache
+	@echo "$(GREEN)Building Docker images without cache for $(SERVICE_NAME)...$(NC)"
 	$(DOCKER_COMPOSE) build --no-cache
 	@echo "$(GREEN)Build complete!$(NC)"
 
 build: ## Build Docker images using cache
+	@$(MAKE) build-base
 	@echo "$(GREEN)Building Docker images for $(SERVICE_NAME)...$(NC)"
 	$(DOCKER_COMPOSE) build
 
@@ -90,12 +101,23 @@ dependencies: ## Start all dependencies in the correct order
 	fi
 
 up: ## Start all services, including dependencies
+	@$(MAKE) render
+	@$(MAKE) init
 	@$(MAKE) dependencies
 	@$(MAKE) up-minimal
+	@$(MAKE) test
+
+up-without-jinja2: ## Start all services without rendering
+	@$(MAKE) dependencies
+	@$(MAKE) up-minimal-without-jinja2
 
 up-minimal: ## Start services for this project only
 	@echo "$(GREEN)\nStarting services for $(SERVICE_NAME)...$(NC)"
-	@$(MAKE) init
+	@$(MAKE) render
+	@$(MAKE) up-minimal-without-jinja2
+
+up-minimal-without-jinja2: ## Start services for this project only without rendering and dependencies
+	@echo "$(GREEN)\nStarting services for $(SERVICE_NAME)...$(NC)"
 	$(DOCKER_COMPOSE) up -d
 	@echo "$(GREEN)Waiting for services to be healthy ($(SLEEP_SECS) seconds)...$(NC)"
 	@sleep $(SLEEP_SECS)
@@ -117,7 +139,8 @@ up-service-health: ## Start a single service and wait for it to be healthy: make
 	@$(MAKE) health-service-retry SERVICE=$(SERVICE)
 
 init: ## Initialize service-specific resources (override in service Makefile if needed)
-	@: # No-op
+	@$(MAKE) network
+	@$(MAKE) build-base
 
 down: ## Stop all services for this project
 	@echo "$(RED)Stopping services for $(SERVICE_NAME)...$(NC)"
@@ -144,6 +167,13 @@ status: ## List running services for this project
 	$(DOCKER_COMPOSE) ps
 
 ps: status ## Alias for status
+
+test:
+	@if [ -f "$(CURDIR)/tests.sh" ]; then \
+		$(CURDIR)/tests.sh; \
+	else \
+		echo "tests.sh not found in $(CURDIR), skipping tests."; \
+	fi
 
 health: ## Check the health status of all components
 	@echo "$(GREEN)Checking health status for $(SERVICE_NAME)...$(NC)"
@@ -203,6 +233,16 @@ health-service-retry:
 	echo "Service $(SERVICE) failed to become healthy after 5 minutes."; \
 	exit 1
 
+network:
+	@set -a; \
+    if [ -f "$(CURDIR)/../.env" ]; then . "$(CURDIR)/../.env"; fi; \
+    if ! docker network ls --format '{{.Name}}' | grep -wq "$$NETWORK"; then \
+        echo "Creating network $$NETWORK"; \
+        docker network create "$$NETWORK"; \
+    else \
+        echo "Network $$NETWORK already exists"; \
+    fi
+
 debug-env:
 	@echo "ROOT_DIR: $(ROOT_DIR)"
 	@echo "SCRIPTS_DIR: $(SCRIPTS_DIR)"
@@ -218,3 +258,9 @@ debug-env:
 
 debug-config:
 	$(DOCKER_COMPOSE) config
+
+render: ## Render docker-compose.yml from Jinja template
+	@echo "Rendering $(SERVICE_NAME)..."
+	@echo "$(GREEN)Building jinja2-renderer image for $(SERVICE_NAME)...$(NC)"
+	docker build -t jinja2-renderer $(ROOT_DIR)/apps/jinja2
+	docker run --rm -v $(ROOT_DIR)/apps:/app jinja2-renderer python3 jinja2/render.py $(SERVICE_NAME)

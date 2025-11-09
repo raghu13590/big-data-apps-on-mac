@@ -1,17 +1,17 @@
 blob.server.port: 6124
 rest.port: 8074
 taskmanager.log.path: /opt/flink/log/taskmanager.log
-taskmanager.memory.process.size: 1568m
+taskmanager.memory.process.size: 1024m
 jobmanager.web.log.path: /opt/flink/log/jobmanager.log
 jobmanager.rpc.address: jobmanager
-taskmanager.numberOfTaskSlots: 8
-yarn.containers.vcores: 8
+taskmanager.numberOfTaskSlots: 2
+yarn.containers.vcores: 2
 jobmanager.web.submit.enable: true
-jobmanager.memory.process.size: 1568m
+jobmanager.memory.process.size: 1024m
 query.server.port: 6125
 
 # Hadoop configurations
-fs.default-scheme: hdfs://namenode:9000
+fs.defaultFS: hdfs://namenode:9000
 fs.hdfs.hadoopconf: /opt/hadoop-3.3.6/etc/hadoop
 fs.hdfs.impl.disable.cache: true
 yarn.application.classpath: $HADOOP_CONF_DIR,$HADOOP_COMMON_HOME/*,$HADOOP_COMMON_HOME/lib/*,$HADOOP_HDFS_HOME/*,$HADOOP_HDFS_HOME/lib/*,$HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*
@@ -25,8 +25,9 @@ yarn.application.attempts: 1
 yarn.application.priority: 1
 yarn.resourcemanager.address: resourcemanager:8032
 yarn.ship-files: /opt/flink/conf
-yarn.application-master.env.HADOOP_USER_NAME: hdfs
+yarn.application-master.env.HADOOP_USER_NAME: hadoop
 yarn.tags: flink
+
 
 # Additional HDFS configurations
 fs.defaultFS: hdfs://namenode:9000

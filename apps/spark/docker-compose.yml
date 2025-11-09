@@ -1,27 +1,15 @@
-x-build-default: &build-default
-  build:
-    context: ${BUILD_CONTEXT}
-    args:
-      - CONFIGS_DIR_HADOOP=${CONFIGS_DIR_HADOOP}
-      - HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
-      - HADOOP_VERSION=${HADOOP_VERSION}
-      - SPARK_HADOOP_VERSION=${SPARK_HADOOP_VERSION}
-      - HADOOP_HOME=${HADOOP_HOME}
-      - SPARK_VERSION=${SPARK_VERSION}
 
-x-env-file-default: &env-file-default
-  env_file:
-    - .env # Common .env file
-    - ${ENV_SERVICE_FILE} # Service-specific .env file
-
-x-healthcheck-default: &healthcheck-default
-  interval: ${HEALTHCHECK_INTERVAL}
-  timeout: ${HEALTHCHECK_TIMEOUT}
-  retries: ${HEALTHCHECK_RETRIES}
 
 services:
   spark-master:
-    <<: [*build-default, *env-file-default]
+    build:
+      context: ${BUILD_CONTEXT}
+      args:
+        HADOOP_VERSION: 3.3.6
+        HADOOP_HOME: /opt/hadoop-3.3.6
+        HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
+        SPARK_VERSION: 3.2.1
+        SPARK_HADOOP_VERSION: 3.2
     container_name: spark-master
     ports:
       - "7077:7077"
@@ -45,15 +33,24 @@ services:
       - ${APP_DATA_DIR}/datasets:/opt/spark/datasets
       - ${APP_DATA_DIR}/local-jars:/opt/spark/local-jars
     networks:
-      - ${BIG_DATA_NETWORK}
+      - big-data-network
     command: ["spark-class", "org.apache.spark.deploy.master.Master", "--webui-port", "${SPARK_MASTER_WEBUI_PORT}"]
     healthcheck:
-      <<: *healthcheck-default
-      test: ["CMD", "curl", "-f", "http://localhost:8072"]
-      
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      test: [ "CMD-SHELL", "curl -f http://localhost:8072" ]
 
+  
   spark-worker-1:
-    <<: [*build-default, *env-file-default]
+    build:
+      context: ${BUILD_CONTEXT}
+      args:
+        HADOOP_VERSION: 3.3.6
+        HADOOP_HOME: /opt/hadoop-3.3.6
+        HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
+        SPARK_VERSION: 3.2.1
+        SPARK_HADOOP_VERSION: 3.2
     container_name: spark-worker-1
     environment:
       - SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI_PORT_1}
@@ -78,14 +75,23 @@ services:
       - ${APP_DATA_DIR}/datasets:/opt/spark/datasets
       - ${APP_DATA_DIR}/local-jars:/opt/spark/local-jars
     networks:
-      - ${BIG_DATA_NETWORK}
+      - big-data-network
     command: ["spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077", "--webui-port", "${SPARK_WORKER_WEBUI_PORT_1}"]
     healthcheck:
-      <<: *healthcheck-default
-      test: ["CMD", "curl", "-f", "http://localhost:8073"]
-
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      test: [ "CMD-SHELL", "curl -f http://localhost:8073" ]
+  
   spark-worker-2:
-    <<: [*build-default, *env-file-default]
+    build:
+      context: ${BUILD_CONTEXT}
+      args:
+        HADOOP_VERSION: 3.3.6
+        HADOOP_HOME: /opt/hadoop-3.3.6
+        HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
+        SPARK_VERSION: 3.2.1
+        SPARK_HADOOP_VERSION: 3.2
     container_name: spark-worker-2
     environment:
       - SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI_PORT_2}
@@ -102,7 +108,7 @@ services:
     volumes:
       - ${CONFIGS_DIR}/spark-env.sh:/opt/spark/conf/spark-env.sh
       - ${CONFIGS_DIR}/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
-      - ${CONFIGS_DIR_HADOOP}//core-site.xml:/opt/hadoop-3.3.6/etc/hadoop/core-site.xml
+      - ${CONFIGS_DIR_HADOOP}/core-site.xml:/opt/hadoop-3.3.6/etc/hadoop/core-site.xml
       - ${CONFIGS_DIR_HADOOP}/hdfs-site.xml:/opt/hadoop-3.3.6/etc/hadoop/hdfs-site.xml
       - ${CONFIGS_DIR_HADOOP}/yarn-site.xml:/opt/hadoop-3.3.6/etc/hadoop/yarn-site.xml
       - ${CONFIGS_DIR_HADOOP}/hive-site.xml:/opt/hive/hive-site.xml
@@ -110,15 +116,24 @@ services:
       - ${APP_DATA_DIR}/datasets:/opt/spark/datasets
       - ${APP_DATA_DIR}/local-jars:/opt/spark/local-jars
     networks:
-      - ${BIG_DATA_NETWORK}
+      - big-data-network
     command: ["spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077", "--webui-port", "${SPARK_WORKER_WEBUI_PORT_2}"]
     healthcheck:
-      <<: *healthcheck-default
-      test: ["CMD", "curl", "-f", "http://localhost:8075"]
-      
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      test: [ "CMD-SHELL", "curl -f http://localhost:8075" ]
+  
 
   spark-history:
-    <<: [*build-default, *env-file-default]
+    build:
+      context: ${BUILD_CONTEXT}
+      args:
+        HADOOP_VERSION: 3.3.6
+        HADOOP_HOME: /opt/hadoop-3.3.6
+        HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
+        SPARK_VERSION: 3.2.1
+        SPARK_HADOOP_VERSION: 3.2
     container_name: spark-history
     ports:
       - "18080:18080"
@@ -130,8 +145,13 @@ services:
       - ${CONFIGS_DIR}/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf
       - ${APP_DATA_DIR}/history:/opt/spark/history
     networks:
-      - ${BIG_DATA_NETWORK}
+      - big-data-network
     command: ["spark-class", "org.apache.spark.deploy.history.HistoryServer"]
     healthcheck:
-      <<: *healthcheck-default
-      test: ["CMD", "curl", "-f", "http://localhost:18080"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      test: [ "CMD-SHELL", "curl -f http://localhost:18080" ]
+networks:
+  big-data-network:
+    external: true
