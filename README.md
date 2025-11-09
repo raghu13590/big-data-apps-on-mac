@@ -1,6 +1,6 @@
-# Big Data Mac ARM64 Setup
+# Big Data apps on MacOS
 
-This project sets up a big data environment on a Mac with ARM64 architecture using Docker. It uses Makefiles to manage and run Zookeeper, Kafka, AKHQ (a GUI for Kafka), Pinot, Superset, ZooNavigator, Spark, Flink, KafkaProducer, and Hadoop services.
+This project sets up a big data applications on a Mac with ARM64 architecture/Apple silicon using Docker. It uses Makefiles to manage and run Zookeeper, Kafka, AKHQ (a GUI for Kafka), Pinot, Superset, ZooNavigator, Spark, Flink, KafkaProducer, and Hadoop services.
 
 ## Overview
 
