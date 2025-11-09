@@ -39,19 +39,6 @@ def restart_container(cid):
     container = client.containers.get(cid)
     container.restart()
 
-def get_makefile_targets(makefile_path):
-    targets = []
-    with open(makefile_path) as f:
-        for line in f:
-            if line.strip().endswith(':') and not line.startswith('\t'):
-                target = line.split(':')[0].strip()
-                if target and not target.startswith('.'):
-                    targets.append(target)
-    return targets
-
-def run_make_target(service_path, target):
-    result = subprocess.run(['make', '-C', str(service_path), target], capture_output=True, text=True)
-    return result.stdout + '\n' + result.stderr
 
 def main():
     st.title('Docker Service Manager')
@@ -105,19 +92,6 @@ def main():
                     disabled=True
                 )
                 st.markdown("<style>textarea { resize: vertical; width: 100% !important; }</style>", unsafe_allow_html=True)
-
-    st.header('Service Makefile Targets')
-    SERVICES_DIR = Path("/apps")
-    SERVICES = [d for d in SERVICES_DIR.iterdir() if d.is_dir() and (d / 'Makefile').exists()]
-    for service in SERVICES:
-        service_name = service.name
-        makefile_path = service / 'Makefile'
-        targets = get_makefile_targets(makefile_path)
-        with st.expander(f"Service: {service_name}"):
-            for target in targets:
-                if st.button(f"Run '{target}' for {service_name}"):
-                    output = run_make_target(service, target)
-                    st.text_area(f"Output of '{target}'", output, height=200)
 
 if __name__ == "__main__":
     main()
