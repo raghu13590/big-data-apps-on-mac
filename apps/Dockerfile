@@ -2,55 +2,59 @@
 
 FROM ubuntu:focal
 
+# Parameterized build arguments
+ARG JAVA_HOME
+ARG JDK
+ARG PYTHON_VERSION
+ARG TZ
+ARG LANG
+ARG LANGUAGE
+ARG LC_ALL
+
+# Set environment variables for runtime
+ENV JAVA_HOME=${JAVA_HOME}
+ENV JDK=${JDK}
+ENV PYTHON_VERSION=${PYTHON_VERSION}
+ENV TZ=${TZ}
+ENV LANG=${LANG}
+ENV LANGUAGE=${LANGUAGE}
+ENV LC_ALL=${LC_ALL}
+ENV PATH=$JAVA_HOME/bin:$PATH
+
 # Use bash shell for all RUN commands with pipefail option
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive \
-    TZ=${TZ} \
-    LANG=${LANG} \
-    LANGUAGE=${LANGUAGE} \
-    LC_ALL=${LC_ALL} \
-    PYTHONIOENCODING=${PYTHONIOENCODING}
-
-# Disable suggests/recommends to reduce image size and configure timezone
-RUN echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/10disableextras && \
-    echo 'APT::Install-Suggests "0";' >> /etc/apt/apt.conf.d/10disableextras && \
-    if [ -f "/usr/share/zoneinfo/$TZ" ]; then \
-        ln -snf /usr/share/zoneinfo/$TZ /etc/localtime; \
-        echo $TZ > /etc/timezone; \
-    else \
-        ln -snf /usr/share/zoneinfo/UTC /etc/localtime; \
-        echo "UTC" > /etc/timezone; \
-    fi
-
-# Install common system packages
+# Install core system packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        # Core utilities
         wget \
         curl \
         ca-certificates \
         gnupg \
         software-properties-common \
         lsb-release \
-        # Network tools
         netcat \
         net-tools \
-        # Text editors and utilities
         less \
         nano \
         vim \
-        # Process management
         procps \
-        # Java (OpenJDK 11 is common across most services)
-        openjdk-11-jdk \
-        # Python (used by many services for utilities and client libraries)
-        python3 \
-        python3-pip \
-        python3-dev \
         locales && \
-    # Clean up apt cache to reduce image size
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# --- Java ---
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ${JDK} && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# --- Python ---
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python${PYTHON_VERSION} \
+        python${PYTHON_VERSION}-pip \
+        python${PYTHON_VERSION}-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -58,16 +62,12 @@ RUN apt-get update && \
 RUN echo "${LANG} UTF-8" > /etc/locale.gen && \
     locale-gen ${LANG}
 
-# Set Java home (for arm64/aarch64 architecture)
-# Note: Adjust path for amd64 if needed: /usr/lib/jvm/java-11-openjdk-amd64
-ENV JAVA_HOME=${JAVA_HOME}
-ENV PATH=$JAVA_HOME/bin:$PATH
+# Set timezone
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Create a common directory structure
 RUN mkdir -p /opt/app /opt/configs /opt/data /opt/logs
 
-# Set working directory
 WORKDIR /opt/app
 
-# Default command
 CMD ["/bin/bash"]

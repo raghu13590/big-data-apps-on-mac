@@ -73,7 +73,9 @@ help: ## Show this help message
 
 build-base: ## Build the base Docker image
 	@echo "$(GREEN)Building base Docker image...$(NC)"
-	docker build -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps
+	ARGS="$$(grep -v '^#' $(ROOT_DIR)/apps/.env | grep -E '^[A-Za-z_][A-Za-z0-9_]*=' | sed 's/^/--build-arg /')"; \
+	echo "Build args: $$ARGS"; \
+	docker build $$ARGS -t big-data-base:latest -f $(BASE_DOCKERFILE) $(ROOT_DIR)/apps
 	@echo "$(GREEN)Base image build complete!$(NC)"
 
 build-no-cache: build-base ## Build Docker images without using cache
