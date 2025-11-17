@@ -1,6 +1,6 @@
+{% extends "base.yml.j2" %}
 
-
-services:
+{% block services %}
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
@@ -8,15 +8,15 @@ services:
     volumes:
       - ${CONFIGS_DIR}/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8888:8888"   # Collector metrics
-      - "8889:8889"   # Prometheus exporter
-      - "13133:13133" # Health check endpoint
+      {{ port_map(4317, 4317) }}   # OTLP gRPC
+      {{ port_map(4318, 4318) }}   # OTLP HTTP
+      {{ port_map(8888, 8888) }}   # Collector metrics
+      {{ port_map(8889, 8889) }}   # Prometheus exporter
+      {{ port_map(13133, 13133) }} # Health check endpoint
     depends_on:
       - prometheus
     networks:
-      - big-data-network
+      - {{ NETWORK }}
     # Healthcheck removed because distroless image has no curl/wget
     
   prometheus:
@@ -25,31 +25,21 @@ services:
     volumes:
       - ${CONFIGS_DIR}/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      {{ port_map(9090, 9090) }}
     networks:
-      - big-data-network
-    healthcheck:
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      test: [ "CMD-SHELL", "wget --spider -q http://localhost:9090/-/ready || exit 1" ]
+      - {{ NETWORK }}
+    {{ healthcheck('wget --spider -q http://localhost:9090/-/ready || exit 1') | indent(4) }}
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3000:3000"
+      {{ port_map(3000, 3000) }}
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
     networks:
-      - big-data-network
-    healthcheck:
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      test: [ "CMD-SHELL", "curl -f http://localhost:3000/api/health" ]
-networks:
-  big-data-network:
-    external: true
+      - {{ NETWORK }}
+    {{ healthcheck('curl -f http://localhost:3000/api/health') | indent(4) }}
+{% endblock %}

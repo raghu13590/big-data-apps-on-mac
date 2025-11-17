@@ -33,7 +33,11 @@ exporters:
   debug:
     verbosity: detailed
 
+extensions:
+  health_check:
+
 service:
+  extensions: [health_check]
   pipelines:
     metrics:
       receivers: [otlp, prometheus, kafkametrics]
