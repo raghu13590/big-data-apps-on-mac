@@ -1,0 +1,40 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+  kafkametrics:
+    brokers:
+      - kafka1:9092
+      - kafka2:9093
+      - kafka3:9094
+    protocol_version: 3.5.1
+    scrapers:
+      - brokers
+      - topics
+      - consumers
+    collection_interval: 10s
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          static_configs:
+            - targets: ['localhost:8888']
+        - job_name: 'apps'
+          static_configs:
+            - targets:
+                - 'host.docker.internal:8081'
+                - 'host.docker.internal:9870'
+                - 'host.docker.internal:7077'
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp, prometheus, kafkametrics]
+      exporters: [prometheus, debug]
