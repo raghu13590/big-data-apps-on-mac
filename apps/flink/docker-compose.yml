@@ -5,15 +5,13 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       args:
-        JAVA_HOME: /usr/lib/jvm/java-11-openjdk-arm64
-        JAVA_VERSION: 11
         FLINK_VERSION: 1.17.0
         FLINK_HOME: /opt/flink
+        FLINK_LIB_PATH: /opt/flink/lib
+        SCALA_VERSION: 2.12
+        HADOOP_VERSION: 3.3.6
         HADOOP_HOME: /opt/hadoop-3.3.6
         HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
-        HADOOP_VERSION: 3.3.6
-        SCALA_VERSION: 2.12
-        FLINK_LIB_PATH: /opt/flink/lib
         HADOOP_USER_NAME: hadoop
     environment:
       FLINK_PROPERTIES: jobmanager.rpc.address:jobmanager
@@ -27,7 +25,7 @@ services:
       - flink_jobmanager_data:${FLINK_HOME}/data
       - flink_jobmanager_log:${FLINK_HOME}/log
       - ${CONFIGS_DIR}/flink-conf.yaml:${FLINK_HOME}/conf/flink-conf.yaml
-      - ../configs/hadoop:${HADOOP_CONF_DIR}
+      - ../../configs/hadoop:${HADOOP_CONF_DIR}
       - ${APP_DATA_DIR}/data:${FLINK_HOME}/datasets
       - ${APP_DATA_DIR}/jars:${FLINK_HOME}/user-jars
     command: ${FLINK_HOME}/bin/jobmanager.sh start-foreground
@@ -43,15 +41,13 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       args:
-        JAVA_HOME: /usr/lib/jvm/java-11-openjdk-arm64
-        JAVA_VERSION: 11
         FLINK_VERSION: 1.17.0
         FLINK_HOME: /opt/flink
+        FLINK_LIB_PATH: /opt/flink/lib
+        SCALA_VERSION: 2.12
+        HADOOP_VERSION: 3.3.6
         HADOOP_HOME: /opt/hadoop-3.3.6
         HADOOP_CONF_DIR: /opt/hadoop-3.3.6/etc/hadoop
-        HADOOP_VERSION: 3.3.6
-        SCALA_VERSION: 2.12
-        FLINK_LIB_PATH: /opt/flink/lib
         HADOOP_USER_NAME: hadoop
     environment:
       FLINK_PROPERTIES: taskmanager.rpc.address:taskmanager
@@ -65,7 +61,7 @@ services:
       - flink_taskmanager_data:${FLINK_HOME}/data
       - flink_taskmanager_log:${FLINK_HOME}/log
       - ${CONFIGS_DIR}/flink-conf.yaml:${FLINK_HOME}/conf/flink-conf.yaml
-      - ../configs/hadoop:${HADOOP_CONF_DIR}
+      - ../../configs/hadoop:${HADOOP_CONF_DIR}
       - ${APP_DATA_DIR}/data:${FLINK_HOME}/datasets
       - ${APP_DATA_DIR}/jars:${FLINK_HOME}/user-jars
     command: ${FLINK_HOME}/bin/taskmanager.sh start-foreground

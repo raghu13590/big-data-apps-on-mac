@@ -51,6 +51,7 @@ up: ## Start Hadoop services (normal flow, no reset)
 	@$(MAKE) render
 	@$(MAKE) init
 	@$(MAKE) dependencies
+	@$(MAKE) build
 	@$(MAKE) up-service-health SERVICE=namenode
 	@$(MAKE) up-service-health SERVICE=datanode1
 	@$(MAKE) up-service-health SERVICE=datanode2

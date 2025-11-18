@@ -22,6 +22,7 @@ services:
     environment:
       HDFS_WAREHOUSE_DIR: /user/hive/warehouse
       HDFS_STAGING_DIR: /tmp/hadoop-yarn/staging
+      FLINK_HDFS_LIB_PATH: /flink/lib
       HDFS_OWNER: hive:hadoop
       HDFS_PERMISSIONS: 777
     container_name: namenode
@@ -62,6 +63,7 @@ services:
     environment:
       HDFS_WAREHOUSE_DIR: /user/hive/warehouse
       HDFS_STAGING_DIR: /tmp/hadoop-yarn/staging
+      FLINK_HDFS_LIB_PATH: /flink/lib
       HDFS_OWNER: hive:hadoop
       HDFS_PERMISSIONS: 777
     container_name: datanode1
@@ -104,6 +106,7 @@ services:
     environment:
       HDFS_WAREHOUSE_DIR: /user/hive/warehouse
       HDFS_STAGING_DIR: /tmp/hadoop-yarn/staging
+      FLINK_HDFS_LIB_PATH: /flink/lib
       HDFS_OWNER: hive:hadoop
       HDFS_PERMISSIONS: 777
     container_name: datanode2
@@ -146,6 +149,7 @@ services:
     environment:
       HDFS_WAREHOUSE_DIR: /user/hive/warehouse
       HDFS_STAGING_DIR: /tmp/hadoop-yarn/staging
+      FLINK_HDFS_LIB_PATH: /flink/lib
       HDFS_OWNER: hive:hadoop
       HDFS_PERMISSIONS: 777
     container_name: resourcemanager
@@ -186,6 +190,7 @@ services:
     environment:
       HDFS_WAREHOUSE_DIR: /user/hive/warehouse
       HDFS_STAGING_DIR: /tmp/hadoop-yarn/staging
+      FLINK_HDFS_LIB_PATH: /flink/lib
       HDFS_OWNER: hive:hadoop
       HDFS_PERMISSIONS: 777
     container_name: nodemanager1
@@ -226,6 +231,7 @@ services:
     environment:
       HDFS_WAREHOUSE_DIR: /user/hive/warehouse
       HDFS_STAGING_DIR: /tmp/hadoop-yarn/staging
+      FLINK_HDFS_LIB_PATH: /flink/lib
       HDFS_OWNER: hive:hadoop
       HDFS_PERMISSIONS: 777
     container_name: nodemanager2
@@ -284,6 +290,7 @@ services:
     environment:
       HDFS_WAREHOUSE_DIR: /user/hive/warehouse
       HDFS_STAGING_DIR: /tmp/hadoop-yarn/staging
+      FLINK_HDFS_LIB_PATH: /flink/lib
       HDFS_OWNER: hive:hadoop
       HDFS_PERMISSIONS: 777
     container_name: metastore
@@ -324,6 +331,7 @@ services:
     environment:
       HDFS_WAREHOUSE_DIR: /user/hive/warehouse
       HDFS_STAGING_DIR: /tmp/hadoop-yarn/staging
+      FLINK_HDFS_LIB_PATH: /flink/lib
       HDFS_OWNER: hive:hadoop
       HDFS_PERMISSIONS: 777
     container_name: hiveserver2

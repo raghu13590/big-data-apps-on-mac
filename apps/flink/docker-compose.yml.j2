@@ -1,15 +1,13 @@
 {% extends "base.yml.j2" %}
 
 {% set flink_build_args = {
-  "JAVA_HOME": JAVA_HOME,
-  "JAVA_VERSION": JAVA_VERSION,
   "FLINK_VERSION": FLINK_VERSION,
   "FLINK_HOME": FLINK_HOME,
+  "FLINK_LIB_PATH": FLINK_LIB_PATH,
+  "SCALA_VERSION": SCALA_VERSION,
+  "HADOOP_VERSION": HADOOP_VERSION,
   "HADOOP_HOME": HADOOP_HOME,
   "HADOOP_CONF_DIR": HADOOP_CONF_DIR,
-  "HADOOP_VERSION": HADOOP_VERSION,
-  "SCALA_VERSION": SCALA_VERSION,
-  "FLINK_LIB_PATH": FLINK_LIB_PATH,
   "HADOOP_USER_NAME": HADOOP_USER_NAME
 } %}
 
@@ -32,7 +30,7 @@ environment:
       - flink_jobmanager_data:${FLINK_HOME}/data
       - flink_jobmanager_log:${FLINK_HOME}/log
       - ${CONFIGS_DIR}/flink-conf.yaml:${FLINK_HOME}/conf/flink-conf.yaml
-      - ../configs/hadoop:${HADOOP_CONF_DIR}
+      - ../../configs/hadoop:${HADOOP_CONF_DIR}
       - ${APP_DATA_DIR}/data:${FLINK_HOME}/datasets
       - ${APP_DATA_DIR}/jars:${FLINK_HOME}/user-jars
     command: ${FLINK_HOME}/bin/jobmanager.sh start-foreground
@@ -50,7 +48,7 @@ environment:
       - flink_taskmanager_data:${FLINK_HOME}/data
       - flink_taskmanager_log:${FLINK_HOME}/log
       - ${CONFIGS_DIR}/flink-conf.yaml:${FLINK_HOME}/conf/flink-conf.yaml
-      - ../configs/hadoop:${HADOOP_CONF_DIR}
+      - ../../configs/hadoop:${HADOOP_CONF_DIR}
       - ${APP_DATA_DIR}/data:${FLINK_HOME}/datasets
       - ${APP_DATA_DIR}/jars:${FLINK_HOME}/user-jars
     command: ${FLINK_HOME}/bin/taskmanager.sh start-foreground

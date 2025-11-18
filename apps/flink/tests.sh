@@ -31,10 +31,10 @@ test_jobmanager() {
             output=$(execute_in_container flink-jobmanager "flink run /opt/flink/examples/streaming/WordCount.jar")
             ;;
         yarn-client)
-            output=$(execute_in_container flink-jobmanager "export HADOOP_CLASSPATH=\$(hadoop classpath) && flink run -m yarn-cluster /opt/flink/examples/streaming/WordCount.jar")
+            output=$(execute_in_container flink-jobmanager "export HADOOP_CLASSPATH=\$(hadoop classpath) && flink run -m yarn-cluster --yarnship /opt/flink/lib/flink-connector-files-1.17.0.jar /opt/flink/examples/streaming/WordCount.jar")
             ;;
         yarn-cluster)
-            output=$(execute_in_container flink-jobmanager "export HADOOP_CLASSPATH=\$(hadoop classpath) && flink run -m yarn-cluster /opt/flink/examples/streaming/WordCount.jar")
+            output=$(execute_in_container flink-jobmanager "export HADOOP_CLASSPATH=\$(hadoop classpath) && flink run -m yarn-cluster --yarnship /opt/flink/lib/flink-connector-files-1.17.0.jar /opt/flink/examples/streaming/WordCount.jar")
             ;;
         *)
             echo "Unknown mode: $mode"

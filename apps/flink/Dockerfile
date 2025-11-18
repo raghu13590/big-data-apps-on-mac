@@ -6,21 +6,32 @@ FROM big-data-base:latest
 
 # Set environment variables
 ARG FLINK_VERSION
+ARG FLINK_HOME
+ARG FLINK_LIB_PATH
 ARG SCALA_VERSION
 ARG HADOOP_VERSION
-ARG JAVA_VERSION
-ARG HADOOP_USER_NAME
-ARG FLINK_HOME
 ARG HADOOP_HOME
-ARG FLINK_LIB_PATH
+ARG HADOOP_CONF_DIR
+ARG HADOOP_USER_NAME
 
+ENV FLINK_VERSION=${FLINK_VERSION}
 ENV FLINK_HOME=${FLINK_HOME}
+ENV FLINK_LIB_PATH=${FLINK_LIB_PATH}
+ENV SCALA_VERSION=${SCALA_VERSION}
+ENV HADOOP_VERSION=${HADOOP_VERSION}
 ENV HADOOP_HOME=${HADOOP_HOME}
-ENV HADOOP_CONF_DIR=${HADOOP_CONF_DIR}
 ENV YARN_CONF_DIR=${HADOOP_CONF_DIR}
 ENV HADOOP_USER_NAME=${HADOOP_USER_NAME}
-ENV FLINK_LIB_PATH=${FLINK_LIB_PATH}
 ENV PATH="${PATH}:${HADOOP_HOME}/bin:${FLINK_HOME}/bin"
+
+# exit if any of the variables are not set
+RUN missing=""; \
+    for var in FLINK_VERSION SCALA_VERSION HADOOP_VERSION HADOOP_USER_NAME FLINK_HOME HADOOP_HOME FLINK_LIB_PATH; do \
+        if [ -z "${!var}" ]; then missing="$missing\n - $var"; fi; \
+    done; \
+    if [ -n "$missing" ]; then \
+        echo -e "Error: The following build arguments are not set:$missing"; exit 1; \
+    fi
 
 # Switch to root to install packages
 USER root
@@ -40,6 +51,8 @@ RUN wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/had
 # Add Flink Hadoop integration
 RUN mkdir -p ${FLINK_LIB_PATH} && \
     wget https://repo1.maven.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-10.0/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar -O ${FLINK_LIB_PATH}/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
+
+RUN wget https://repo1.maven.org/maven2/org/apache/flink/flink-connector-files/1.17.0/flink-connector-files-1.17.0.jar -O ${FLINK_LIB_PATH}/flink-connector-files-1.17.0.jar
 
 # Create hadoop user and set up permissions
 RUN groupadd ${HADOOP_USER_NAME} && \

@@ -1,10 +1,24 @@
 #!/bin/bash
 
 # Check that required environment variables are set
-if [[ -z "$HDFS_WAREHOUSE_DIR" || -z "$HDFS_STAGING_DIR" || -z "$HDFS_OWNER" || -z "$HDFS_PERMISSIONS" ]]; then
+if [[ -z "$HDFS_WAREHOUSE_DIR" || -z "$HDFS_STAGING_DIR" || -z "$HDFS_OWNER" || -z "$HDFS_PERMISSIONS"  || -z "$FLINK_HDFS_LIB_PATH" ]]; then
     echo "Error: One or more required environment variables (HDFS_WAREHOUSE_DIR, HDFS_STAGING_DIR, HDFS_OWNER, HDFS_PERMISSIONS) are not set."
     exit 1
 fi
+
+# Function to create Flink HDFS lib directory
+create_flink_hdfs_lib_dir() {
+    if [[ -n "$FLINK_HDFS_LIB_PATH" ]]; then
+        if ! hdfs dfs -test -d "$FLINK_HDFS_LIB_PATH"; then
+            echo "Creating $FLINK_HDFS_LIB_PATH directory in HDFS..."
+            hdfs dfs -mkdir -p "$FLINK_HDFS_LIB_PATH"
+            hdfs dfs -chmod -R "$HDFS_PERMISSIONS" "$FLINK_HDFS_LIB_PATH"
+            hdfs dfs -chown -R "$HDFS_OWNER" "$FLINK_HDFS_LIB_PATH"
+        else
+            echo "$FLINK_HDFS_LIB_PATH directory already exists"
+        fi
+    fi
+}
 
 # Function to initialize HDFS directories and set permissions
 initialize_hdfs_directories() {
@@ -33,6 +47,8 @@ initialize_hdfs_directories() {
     else
         echo "$HDFS_STAGING_DIR directory already exists"
     fi
+
+    create_flink_hdfs_lib_dir
 }
 
 # Function to initialize Hive schema
@@ -48,7 +64,14 @@ initialize_hive_schema() {
 # Start the specified Hadoop component
 case "$1" in
   namenode)
-    hdfs namenode
+    hdfs namenode &
+    # Wait for HDFS to be ready and create required directories
+    until hdfs dfs -ls /; do
+        echo "Waiting for HDFS to start..."
+        sleep 5
+    done
+    initialize_hdfs_directories
+    wait
     ;;
   datanode)
     hdfs datanode
